@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFront with S3 Origin Group and OAC'
+
+Resources:
+  # 1. Avain, jolla CloudFront pääsee lukittuihin ämpäreihin
+  CloudFrontOriginAccessControl:
+    Type: 'AWS::CloudFront::OriginAccessControl'
+    Properties:
+      OriginAccessControlConfig:
+        Description: 'Access Control for S3 Buckets'
+        Name: !Sub '${AWS::StackName}-OAC'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # 2. Itse jakelu
+  CloudFrontDistribution:
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+
+        # Määritellään S3-ämpärit lähteiksi (käytetään dynaamisesti tili-ID:tä)
+        Origins:
+          - Id: PrimaryS3
+            DomainName: !Sub 'website-eu-north-1-${AWS::AccountId}.s3.eu-north-1.amazonaws.com'
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+            OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
+
+          - Id: SecondaryS3
+            DomainName: !Sub 'website-eu-west-1-${AWS::AccountId}.s3.eu-west-1.amazonaws.com'
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+            OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
+
+        # Failover-logiikka (Origin Group)
+        OriginGroups:
+          Quantity: 1
+          Items:
+            - Id: MyOriginGroup
+              FailoverCriteria:
+                StatusCodes:
+                  Quantity: 4
+                  Items: [403, 404, 500, 502]
+              Members:
+                Quantity: 2
+                Items:
+                  - OriginId: PrimaryS3 # Ensisijainen
+                  - OriginId: SecondaryS3 # Varalla
+
+        DefaultCacheBehavior:
+          TargetOriginId: MyOriginGroup
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
+          AllowedMethods: [GET, HEAD]
+
+Outputs:
+  WebsiteURL:
+    Value: !GetAtt CloudFrontDistribution.DomainName
+    Description: 'Tämä on sivustosi julkinen osoite'

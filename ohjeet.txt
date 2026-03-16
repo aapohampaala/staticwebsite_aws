@@ -1,0 +1,3 @@
+cd cloudformation
+npm run deploy:all
+npm run upload
