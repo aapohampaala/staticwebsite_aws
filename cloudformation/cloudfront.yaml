@@ -24,13 +24,13 @@ Resources:
         # Määritellään S3-ämpärit lähteiksi (käytetään dynaamisesti tili-ID:tä)
         Origins:
           - Id: PrimaryS3
-            DomainName: !Sub 'website-eu-north-1-${AWS::AccountId}.s3.eu-north-1.amazonaws.com'
+            DomainName: !Sub 'website-us-east-1-${AWS::AccountId}.s3.us-east-1.amazonaws.com'
             S3OriginConfig:
               OriginAccessIdentity: ''
             OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
 
           - Id: SecondaryS3
-            DomainName: !Sub 'website-eu-west-1-${AWS::AccountId}.s3.eu-west-1.amazonaws.com'
+            DomainName: !Sub 'website-us-west-2-${AWS::AccountId}.s3.us-west-2.amazonaws.com'
             S3OriginConfig:
               OriginAccessIdentity: ''
             OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id

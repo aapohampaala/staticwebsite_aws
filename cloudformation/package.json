@@ -2,10 +2,10 @@
   "name": "aws-static-site-deploy",
   "version": "1.0.0",
   "scripts": {
-    "deploy:secondary": "aws cloudformation deploy --stack-name sivu-secondary --template-file s3-create-template.yaml --region eu-west-1",
-    "deploy:primary": "aws cloudformation deploy --stack-name sivu-primary --template-file s3-create-template.yaml --region eu-north-1",
+    "deploy:secondary": "aws cloudformation deploy --stack-name sivu-secondary --template-file s3-create-template.yaml --region us-east-1",
+    "deploy:primary": "aws cloudformation deploy --stack-name sivu-primary --template-file s3-create-template.yaml --region us-west-2",
     "deploy:cf": "aws cloudformation deploy --stack-name sivu-cloudfront --template-file cloudfront.yaml --region us-east-1",
     "deploy:all": "npm run deploy:secondary && npm run deploy:primary && npm run deploy:cf",
-    "upload": "export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text) && aws s3 sync ../website/ s3://website-eu-north-1-$ACCOUNT_ID/ --region eu-north-1"
+    "upload": "export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text) && aws s3 sync ../website/ s3://website-us-east-1-$ACCOUNT_ID/ --region us-east-1"
   }
 }
