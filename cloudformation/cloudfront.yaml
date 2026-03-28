@@ -12,7 +12,7 @@ Resources:
   MyHostedZone:
     Type: 'AWS::Route53::HostedZone'
     Properties:
-      Name: !Ref '${MyDomainName}'
+      Name: !Sub '${MyDomainName}.'
 
   CloudFrontOriginAccessControl:
     Type: 'AWS::CloudFront::OriginAccessControl'
