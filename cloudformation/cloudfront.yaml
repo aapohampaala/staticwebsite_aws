@@ -25,10 +25,6 @@ Resources:
         Enabled: true
         DefaultRootObject: index.html
 
-        # CloudFrontin on tiedettävä, mitä domain-nimeä se kuuntelee
-        Aliases:
-          - 'www.sivusto.fi'
-
         # Sandboxissa käytetään oletussertifikaattia, koska meillä ei ole ACM-sertifikaattia
         ViewerCertificate:
           CloudFrontDefaultCertificate: true
