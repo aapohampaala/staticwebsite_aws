@@ -2,11 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: 'CloudFront with S3 Origin Group, OAC and Route 53 Routing (Sandbox Friendly)'
 
 Resources:
-  # Tämä luo "sivusto.fi" -ympäristön AWS:n sisälle, vaikkei domainia oikeasti omistettaisi.
+  # Tämä luo "example.com" -ympäristön AWS:n sisälle, vaikkei domainia oikeasti omistettaisi.
   MyHostedZone:
     Type: 'AWS::Route53::HostedZone'
     Properties:
-      Name: 'sivusto.fi.'
+      Name: 'example.com'
 
   CloudFrontOriginAccessControl:
     Type: 'AWS::CloudFront::OriginAccessControl'
@@ -62,12 +62,12 @@ Resources:
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
           AllowedMethods: [GET, HEAD]
 
-  # Route 53 -rekisteri, joka ohjaa "www.sivusto.fi" -nimen CloudFrontiin
+  # Route 53 -rekisteri, joka ohjaa "www.example.com" -nimen CloudFrontiin
   MyDNSWebRecord:
     Type: 'AWS::Route53::RecordSet'
     Properties:
       HostedZoneId: !Ref MyHostedZone
-      Name: 'www.sivusto.fi.'
+      Name: 'www.example.com.'
       Type: A
       AliasTarget:
         HostedZoneId: Z2FDTNDATAQYW2
@@ -78,5 +78,5 @@ Outputs:
     Value: !GetAtt CloudFrontDistribution.DomainName
     Description: 'CloudFrontin osoite, vaikka ei olisi route53'
   Route53Record:
-    Value: 'www.sivusto.fi'
+    Value: 'www.example.com'
     Description: 'Tämä nimi ohjaa nyt CloudFrontiin AWS-ympäristössäsi'
