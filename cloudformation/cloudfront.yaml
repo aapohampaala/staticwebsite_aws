@@ -1,8 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'CloudFront with S3 Origin Group and OAC'
+Description: 'CloudFront with S3 Origin Group, OAC and Route 53 Routing (Sandbox Friendly)'
 
 Resources:
-  # 1. Avain, jolla CloudFront pääsee lukittuihin ämpäreihin
+  # Tämä luo "sivusto.fi" -ympäristön AWS:n sisälle, vaikkei domainia oikeasti omistettaisi.
+  MyHostedZone:
+    Type: 'AWS::Route53::HostedZone'
+    Properties:
+      Name: 'sivusto.fi.'
+
   CloudFrontOriginAccessControl:
     Type: 'AWS::CloudFront::OriginAccessControl'
     Properties:
@@ -13,7 +18,6 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
-  # 2. Itse jakelu
   CloudFrontDistribution:
     Type: 'AWS::CloudFront::Distribution'
     Properties:
@@ -21,7 +25,14 @@ Resources:
         Enabled: true
         DefaultRootObject: index.html
 
-        # Määritellään S3-ämpärit lähteiksi (käytetään dynaamisesti tili-ID:tä)
+        # CloudFrontin on tiedettävä, mitä domain-nimeä se kuuntelee
+        Aliases:
+          - 'www.sivusto.fi'
+
+        # Sandboxissa käytetään oletussertifikaattia, koska meillä ei ole ACM-sertifikaattia
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+
         Origins:
           - Id: PrimaryS3
             DomainName: !Sub 'website-us-east-1-${AWS::AccountId}.s3.us-east-1.amazonaws.com'
@@ -35,7 +46,6 @@ Resources:
               OriginAccessIdentity: ''
             OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
 
-        # Failover-logiikka (Origin Group)
         OriginGroups:
           Quantity: 1
           Items:
@@ -47,16 +57,30 @@ Resources:
               Members:
                 Quantity: 2
                 Items:
-                  - OriginId: PrimaryS3 # Ensisijainen
-                  - OriginId: SecondaryS3 # Varalla
+                  - OriginId: PrimaryS3
+                  - OriginId: SecondaryS3
 
         DefaultCacheBehavior:
           TargetOriginId: MyOriginGroup
-          ViewerProtocolPolicy: redirect-to-https
-          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
+          ViewerProtocolPolicy: allow-all # Sandbox-testauksessa helpompi kuin redirect
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
           AllowedMethods: [GET, HEAD]
 
+  # Route 53 -rekisteri, joka ohjaa "www.sivusto.fi" -nimen CloudFrontiin
+  MyDNSWebRecord:
+    Type: 'AWS::Route53::RecordSet'
+    Properties:
+      HostedZoneId: !Ref MyHostedZone
+      Name: 'www.sivusto.fi.'
+      Type: A
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+
 Outputs:
-  WebsiteURL:
+  CloudFrontDomain:
     Value: !GetAtt CloudFrontDistribution.DomainName
-    Description: 'Tämä on sivustosi julkinen osoite'
+    Description: 'CloudFrontin osoite, vaikka ei olisi route53'
+  Route53Record:
+    Value: 'www.sivusto.fi'
+    Description: 'Tämä nimi ohjaa nyt CloudFrontiin AWS-ympäristössäsi'
