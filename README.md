@@ -16,3 +16,6 @@ The project follows the **AWS Well-Architected Framework** by utilizing the foll
 ## ⚠️ Sandbox Considerations
 This project was created in an **AWS Sandbox**, which introduces specific constraints:
 * **DNS Routing:** The Route 53 domain routing does not work for public browsing unless you already own the domain. However, the configuration is technically functional and correctly demonstrates the routing logic to CloudFront.
+
+## Author
+Aapo Hampaala - https://github.com/aapohampaala
